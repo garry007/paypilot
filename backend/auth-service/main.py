@@ -69,14 +69,14 @@ def _get_current_user(
 
 @app.post(
     "/auth/register",
-    response_model=schemas.UserResponse,
+    response_model=schemas.AuthTokenResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Register a new user",
 )
-def register(payload: schemas.UserRegister, db: Session = Depends(get_db)) -> User:
-    """Create a new PayPilot user account.
+def register(payload: schemas.UserRegister, db: Session = Depends(get_db)) -> schemas.AuthTokenResponse:
+    """Create a new PayPilot user account and return authentication tokens.
 
-    Returns the newly created user record (password excluded).
+    Returns tokens and the newly created user record (password excluded).
     Raises HTTP 409 if the username or email is already taken.
     """
     if db.query(User).filter(User.username == payload.username).first():
@@ -98,12 +98,22 @@ def register(payload: schemas.UserRegister, db: Session = Depends(get_db)) -> Us
     db.add(user)
     db.commit()
     db.refresh(user)
-    return user
+
+    access_token = auth_utils.create_access_token(subject=user.id)
+    refresh_token = auth_utils.create_refresh_token(subject=user.id)
+    user.refresh_token = refresh_token
+    db.commit()
+
+    return schemas.AuthTokenResponse(
+        access_token=access_token,
+        refresh_token=refresh_token,
+        user=schemas.UserResponse.model_validate(user),
+    )
 
 
-@app.post("/auth/login", response_model=schemas.TokenResponse, summary="Authenticate and obtain tokens")
-def login(payload: schemas.UserLogin, db: Session = Depends(get_db)) -> schemas.TokenResponse:
-    """Validate credentials and return JWT access + refresh tokens.
+@app.post("/auth/login", response_model=schemas.AuthTokenResponse, summary="Authenticate and obtain tokens")
+def login(payload: schemas.UserLogin, db: Session = Depends(get_db)) -> schemas.AuthTokenResponse:
+    """Validate credentials and return JWT access + refresh tokens plus user profile.
 
     Raises HTTP 401 on invalid username or password.
     """
@@ -126,7 +136,11 @@ def login(payload: schemas.UserLogin, db: Session = Depends(get_db)) -> schemas.
     user.refresh_token = refresh_token
     db.commit()
 
-    return schemas.TokenResponse(access_token=access_token, refresh_token=refresh_token)
+    return schemas.AuthTokenResponse(
+        access_token=access_token,
+        refresh_token=refresh_token,
+        user=schemas.UserResponse.model_validate(user),
+    )
 
 
 @app.post(

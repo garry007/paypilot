@@ -1,24 +1,27 @@
 import Foundation
 
 public struct User: Codable, Identifiable {
-    public let id: String
+    public let id: Int
     public let username: String
     public let email: String
-    public let createdAt: Date
     public let isActive: Bool
+    public let isAdmin: Bool
+    public let createdAt: Date
 
-    public init(id: String, username: String, email: String, createdAt: Date, isActive: Bool) {
+    public init(id: Int, username: String, email: String, isActive: Bool, isAdmin: Bool, createdAt: Date) {
         self.id = id
         self.username = username
         self.email = email
-        self.createdAt = createdAt
         self.isActive = isActive
+        self.isAdmin = isAdmin
+        self.createdAt = createdAt
     }
 
     enum CodingKeys: String, CodingKey {
         case id, username, email
+        case isActive  = "is_active"
+        case isAdmin   = "is_admin"
         case createdAt = "created_at"
-        case isActive = "is_active"
     }
 }
 
@@ -29,9 +32,9 @@ public struct AuthResponse: Codable {
     public let user: User
 
     enum CodingKeys: String, CodingKey {
-        case accessToken = "access_token"
+        case accessToken  = "access_token"
         case refreshToken = "refresh_token"
-        case tokenType = "token_type"
+        case tokenType    = "token_type"
         case user
     }
 }

@@ -69,10 +69,13 @@ class TestRegister:
         )
         assert response.status_code == 201
         data = response.json()
-        assert data["username"] == "testuser"
-        assert data["email"] == "test@example.com"
-        assert "hashed_password" not in data
-        assert "id" in data
+        assert "access_token" in data
+        assert "refresh_token" in data
+        assert data["token_type"] == "bearer"
+        assert data["user"]["username"] == "testuser"
+        assert data["user"]["email"] == "test@example.com"
+        assert "hashed_password" not in data["user"]
+        assert "id" in data["user"]
 
     def test_register_duplicate_username(self, client: TestClient):
         payload = {"username": "dupuser", "email": "first@example.com", "password": "Password1"}

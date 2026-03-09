@@ -71,13 +71,31 @@ public struct Transaction: Codable, Identifiable {
     }
 }
 
+public struct CurrencyStat: Codable {
+    public let currency: String
+    public let totalSent: Double
+    public let totalReceived: Double
+
+    public init(currency: String, totalSent: Double, totalReceived: Double) {
+        self.currency = currency
+        self.totalSent = totalSent
+        self.totalReceived = totalReceived
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case currency
+        case totalSent     = "total_sent"
+        case totalReceived = "total_received"
+    }
+}
+
 public struct TransactionSummary: Codable {
     public let totalSent: Double
     public let totalReceived: Double
     public let transactionCount: Int
-    public let byCurrency: [String: Double]
+    public let byCurrency: [CurrencyStat]
 
-    public init(totalSent: Double, totalReceived: Double, transactionCount: Int, byCurrency: [String: Double]) {
+    public init(totalSent: Double, totalReceived: Double, transactionCount: Int, byCurrency: [CurrencyStat]) {
         self.totalSent = totalSent
         self.totalReceived = totalReceived
         self.transactionCount = transactionCount

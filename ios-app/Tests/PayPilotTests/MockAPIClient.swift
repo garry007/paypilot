@@ -46,11 +46,12 @@ struct CastError: Error {}
 // MARK: - Helpers
 func makeUser() -> User {
     User(
-        id: "user-123",
+        id: 123,
         username: "testuser",
         email: "test@example.com",
-        createdAt: Date(),
-        isActive: true
+        isActive: true,
+        isAdmin: false,
+        createdAt: Date()
     )
 }
 

@@ -77,7 +77,7 @@ private func makeSummary() -> TransactionSummary {
         totalSent: 500.0,
         totalReceived: 300.0,
         transactionCount: 10,
-        byCurrency: ["USD": 800.0]
+        byCurrency: [CurrencyStat(currency: "USD", totalSent: 500.0, totalReceived: 300.0)]
     )
 }
 

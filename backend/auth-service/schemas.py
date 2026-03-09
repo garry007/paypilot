@@ -67,6 +67,15 @@ class TokenResponse(BaseModel):
     token_type: str = "bearer"
 
 
+class AuthTokenResponse(BaseModel):
+    """JWT tokens plus user profile returned after login or registration."""
+
+    access_token: str
+    refresh_token: str
+    token_type: str = "bearer"
+    user: UserResponse
+
+
 class AccessTokenResponse(BaseModel):
     """New access token returned after a successful refresh."""
 

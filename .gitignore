@@ -60,6 +60,17 @@ fastlane/report.xml
 fastlane/Preview.html
 fastlane/screenshots/**/*.png
 fastlane/test_output
-backend/**/__pycache__/
-backend/**/*.pyc
-backend/**/*.db
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.db
+.pytest_cache/
+*.egg-info/
+dist/
+*.egg
+.env
+venv/
+.venv/
+env/
