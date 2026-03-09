@@ -94,7 +94,7 @@ source .venv/bin/activate          # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 
 export DATABASE_URL="postgresql://paypilot:paypilot_secret@localhost:5432/paypilot"
-export JWT_SECRET_KEY="dev-secret-key"
+export SECRET_KEY="dev-secret-key"
 
 uvicorn main:app --reload --port 8001
 ```
@@ -133,7 +133,7 @@ source .venv/bin/activate
 pip install -r requirements.txt
 
 export DATABASE_URL="postgresql://paypilot:paypilot_secret@localhost:5432/paypilot"
-export JWT_SECRET_KEY="dev-secret-key"
+export SECRET_KEY="dev-secret-key"
 export AUTH_SERVICE_URL="http://localhost:8001"
 export FRAUD_SERVICE_URL="http://localhost:8003"
 
@@ -194,17 +194,17 @@ The app defaults to `http://localhost:8000` as the API base URL. Change `Endpoin
 
 ### Auth Service
 
-| Variable          | Required | Default | Description                        |
-|-------------------|----------|---------|------------------------------------|
-| `DATABASE_URL`    | Yes      | —       | PostgreSQL connection string        |
-| `JWT_SECRET_KEY`  | Yes      | —       | HMAC-SHA256 signing secret          |
+| Variable       | Required | Default | Description                        |
+|----------------|----------|---------|------------------------------------|
+| `DATABASE_URL` | Yes      | —       | PostgreSQL connection string        |
+| `SECRET_KEY`   | Yes      | —       | HMAC-SHA256 signing secret          |
 
 ### Transaction Service
 
 | Variable              | Required | Default | Description                          |
 |-----------------------|----------|---------|--------------------------------------|
 | `DATABASE_URL`        | Yes      | —       | PostgreSQL connection string          |
-| `JWT_SECRET_KEY`      | Yes      | —       | Must match auth-service value         |
+| `SECRET_KEY`          | Yes      | —       | Must match auth-service value         |
 | `AUTH_SERVICE_URL`    | Yes      | —       | Base URL of auth-service              |
 | `FRAUD_SERVICE_URL`   | Yes      | —       | Base URL of fraud-service             |
 

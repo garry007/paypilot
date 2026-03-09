@@ -61,7 +61,7 @@ services:
       - "8001:8001"
     environment:
       DATABASE_URL: postgresql://paypilot:paypilot_secret@postgres:5432/paypilot
-      JWT_SECRET_KEY: your-secret-key-change-in-production
+      SECRET_KEY: your-secret-key-change-in-production
     networks:
       - paypilot-network
     depends_on:
@@ -106,7 +106,7 @@ services:
       - "8002:8002"
     environment:
       DATABASE_URL: postgresql://paypilot:paypilot_secret@postgres:5432/paypilot
-      JWT_SECRET_KEY: your-secret-key-change-in-production
+      SECRET_KEY: your-secret-key-change-in-production
       FRAUD_SERVICE_URL: http://fraud-service:8003
       AUTH_SERVICE_URL: http://auth-service:8001
     networks:
