@@ -43,7 +43,7 @@ public final class TransactionViewModel: ObservableObject {
                 }
             } receiveValue: { [weak self] (paginated: PaginatedTransactions) in
                 guard let self = self else { return }
-                if refresh && self.currentPage == 1 {
+                if refresh {
                     self.transactions = paginated.items
                 } else {
                     self.transactions.append(contentsOf: paginated.items)

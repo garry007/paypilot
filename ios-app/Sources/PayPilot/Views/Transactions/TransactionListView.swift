@@ -51,7 +51,8 @@ public struct TransactionListView: View {
                         }
                         .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
                         .onAppear {
-                            if tx.id == filtered.last?.id {
+                            // Trigger load-more when approaching the end of the full unfiltered dataset
+                            if tx.id == viewModel.transactions.last?.id {
                                 viewModel.loadMore()
                             }
                         }

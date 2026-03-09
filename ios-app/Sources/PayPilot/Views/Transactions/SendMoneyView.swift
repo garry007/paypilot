@@ -1,5 +1,8 @@
 #if canImport(SwiftUI)
 import SwiftUI
+#if canImport(Combine)
+import Combine
+#endif
 
 public struct SendMoneyView: View {
     @StateObject private var viewModel = TransactionViewModel()
@@ -11,6 +14,9 @@ public struct SendMoneyView: View {
     @State private var description: String = ""
     @State private var showConfirmation = false
     @State private var didSend = false
+#if canImport(Combine)
+    @State private var cancellables = Set<AnyCancellable>()
+#endif
 
     private let currencies = ["USD", "EUR", "GBP", "JPY"]
 
@@ -156,21 +162,28 @@ public struct SendMoneyView: View {
     }
 
     private func sendMoney() {
+        let countBefore = viewModel.transactions.count
         viewModel.createTransaction(
             amount: amount,
             currency: currency,
             recipientId: recipientId,
             description: description.isEmpty ? nil : description
         )
-        // Observe result via viewModel
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            if viewModel.errorMessage == nil {
+#if canImport(Combine)
+        // Reactively observe the viewModel for success (new transaction inserted) or failure (errorMessage set)
+        viewModel.$transactions
+            .dropFirst()
+            .filter { $0.count > countBefore }
+            .first()
+            .receive(on: DispatchQueue.main)
+            .sink { [self] _ in
                 didSend = true
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
                     dismiss()
                 }
             }
-        }
+            .store(in: &cancellables)
+#endif
     }
 }
 
