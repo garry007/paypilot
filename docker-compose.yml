@@ -1,0 +1,152 @@
+version: "3.9"
+
+networks:
+  paypilot-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
+
+services:
+  # ---------------------------------------------------------------------------
+  # Infrastructure
+  # ---------------------------------------------------------------------------
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: paypilot-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: paypilot
+      POSTGRES_USER: paypilot
+      POSTGRES_PASSWORD: paypilot_secret
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - paypilot-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U paypilot -d paypilot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  redis:
+    image: redis:7-alpine
+    container_name: paypilot-redis
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    networks:
+      - paypilot-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # ---------------------------------------------------------------------------
+  # Backend microservices
+  # ---------------------------------------------------------------------------
+
+  auth-service:
+    build:
+      context: ./backend/auth-service
+      dockerfile: Dockerfile
+    container_name: paypilot-auth
+    restart: unless-stopped
+    ports:
+      - "8001:8001"
+    environment:
+      DATABASE_URL: postgresql://paypilot:paypilot_secret@postgres:5432/paypilot
+      SECRET_KEY: your-secret-key-change-in-production
+    networks:
+      - paypilot-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8001/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  fraud-service:
+    build:
+      context: ./backend/fraud-service
+      dockerfile: Dockerfile
+    container_name: paypilot-fraud
+    restart: unless-stopped
+    ports:
+      - "8003:8003"
+    environment:
+      DATABASE_URL: postgresql://paypilot:paypilot_secret@postgres:5432/paypilot
+    networks:
+      - paypilot-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8003/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  transaction-service:
+    build:
+      context: ./backend/transaction-service
+      dockerfile: Dockerfile
+    container_name: paypilot-transaction
+    restart: unless-stopped
+    ports:
+      - "8002:8002"
+    environment:
+      DATABASE_URL: postgresql://paypilot:paypilot_secret@postgres:5432/paypilot
+      SECRET_KEY: your-secret-key-change-in-production
+      FRAUD_SERVICE_URL: http://fraud-service:8003
+      AUTH_SERVICE_URL: http://auth-service:8001
+    networks:
+      - paypilot-network
+    depends_on:
+      auth-service:
+        condition: service_healthy
+      fraud-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8002/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  api-gateway:
+    build:
+      context: ./backend/api-gateway
+      dockerfile: Dockerfile
+    container_name: paypilot-gateway
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      AUTH_SERVICE_URL: http://auth-service:8001
+      TRANSACTION_SERVICE_URL: http://transaction-service:8002
+      FRAUD_SERVICE_URL: http://fraud-service:8003
+    networks:
+      - paypilot-network
+    depends_on:
+      auth-service:
+        condition: service_healthy
+      transaction-service:
+        condition: service_healthy
+      fraud-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
